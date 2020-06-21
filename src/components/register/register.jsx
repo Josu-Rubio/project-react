@@ -1,69 +1,62 @@
-import React, { Component } from 'react';
-// import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { saveUser } from '../../redux/actions';
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-// import Handler from '../../redux/handleLoginRegister';
-// import { register } from '../../API';
-import Form from '../form';
-import Input from '../input';
+import React, { Component } from "react";
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
-const initialFormData = Object.freeze({
-  userName: '',
-  password: '',
-});
+import { register } from "../API";
 
-const Register = (props) => {
-  /*constructor(props) {
-    super(props);
-    this.state = {
-      form: Handler,
-    };
-  }*/
-  const [formData, updateFormData] = React.useState(initialFormData);
-  const saveUser = props.saveUser;
-
-  const handleChange = (e) => {
-    updateFormData({
-      ...formData,
-
-      [e.target.name]: e.target.value.trim(),
+export default class Register extends Component {
+  state = {
+    user: "",
+    password: "",
+    response: null,
+    error: ""
+  };
+  typeUser = event => {
+    this.setState({ user: event.target.value });
+  };
+  typePassword = event => {
+    this.setState({ password: event.target.value });
+  };
+  clearStatus = e => {
+    this.setState({
+      user: "",
+      password: ""
     });
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(formData);
-
-    saveUser(formData);
+  submitAndAlert = async event => {
+    event.preventDefault();
+    this.setState({
+      response: await register(this.state.user, this.state.password)
+    });
+    if (this.state.response.success === false) {
+      this.setState({ error: this.state.response.error });
+      alert(this.state.error);
+    } else if (this.state.response.success === true) {
+      alert(`Congratulations! The user "${this.state.user}" has been created`);
+      window.location.pathname = "apiv1/login";
+    } else alert("Unknow error. Please try again later.");
   };
 
-  return (
-    <div className='register'>
-      <h2>Let's REGISTER!</h2>
-      <Form
-        initialValues={{ userName: '', password: '' }}
-        onSubmit={handleSubmit}
-      >
-        <Input
-          label='Insert your User or Email'
-          type='text'
-          name='userName'
-          onChange={handleChange}
-        />
-        <Input
-          label='Insert your Password'
-          type='password'
-          name='password'
-          onChange={handleChange}
-        />
-      </Form>
-      <br />
-      <div>
-        <Link to='/apiv1/login'>Or Log In Here</Link>
+  render() {
+    const { user, password } = this.state;
+    return (
+      <div className="register">
+        <h2>Let's REGISTER!</h2>
+        <form onSubmit={this.submitAndAlert}>
+          <p>
+            Insert your User or Email:
+            <input user={user} onChange={this.typeUser} />
+          </p>
+          <p>
+            Insert your Password:
+            <input type="password" password={password} onChange={this.typePassword} />
+          </p>
+          <button value="Submit">Submit</button>
+        </form>
+        <br />
+        <div>
+          <Link to="/apiv1/login">Or Log In Here</Link>
+        </div>
       </div>
-    </div>
-  );
-};
-
-export default connect(null, { saveUser })(Register);
+    );
+  }
+}
